@@ -409,7 +409,7 @@ class TicketLeap:
         Returns:
             None
         """
-        clone_data = {
+        clone_data: Dict[str, Union[str, Tuple[None, str]]] = {
             "csrfmiddlewaretoken": self.csrf_token,
             "title": title,
             "slug": slug,
@@ -450,7 +450,7 @@ class TicketLeap:
         )
 
         if not clone_response.ok:
-            logging.fatal(f"Failed to clone:{clone_response.__dict__}")
+            logging.error(f"Failed to clone:{clone_response.__dict__}")
 
             with open("clone_response.html", mode="w") as file:
                 file.write(clone_response.text)
@@ -465,7 +465,7 @@ class TicketLeap:
         start = time.time()
         dates = self.get_dates(event_slug)
         for _, date in dates.items():
-            self.clear_date(event_slug, date.get("uuid"))
+            self.clear_date(event_slug, date["uuid"])
         print(f"Took {time.time()-start} seconds")
 
     def clear_date(self, event_slug: str, date: Union[str, datetime.datetime]) -> None:
@@ -501,6 +501,11 @@ class TicketLeap:
         Returns:
             None
         """
+        if ticket_uuid is None and ticket_name is None:
+            raise ValueError(
+                "No valid ticket identifier passed. Please provide either a name"
+                "or uuid"
+            )
         delete_headers = self.session.headers.copy()
         delete_headers.update({
             "Accept": "*/*",
@@ -625,7 +630,7 @@ class TicketLeap:
     def add_tickets(
             self,
             event_slug: str,
-            dates: List[datetime.datetime],
+            dates: List[Union[str, datetime.datetime]],
             tickets: List[Dict[str, str]],
         ) -> None:
         """
@@ -637,7 +642,7 @@ class TicketLeap:
             tickets: Tickets to be added
         """
         date_dict_list = self.get_dates(event_slug)
-        fmt = lambda date: date.strftime("%Y-%m-%dT%H:%M")
+        fmt = lambda date: date if isinstance(date, str) else date.strftime("%Y-%m-%dT%H:%M")
         exists = lambda date: bool(date_dict_list.get(date))
         if dates is not None:
             dates = [fmt(date) for date in dates if exists(fmt(date))]
@@ -647,7 +652,6 @@ class TicketLeap:
         if not date_uuid_list:
             raise ValueError("No valid dates given")
         date_uuid_list = sorted(set(date_uuid_list), key=date_uuid_list.index)
-
         ticket_headers = self.session.headers.copy()
         ticket_headers.update({
             "Accept": "*/*",
