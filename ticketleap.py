@@ -64,8 +64,8 @@ class TicketLeap:
         Login to TicketLeap
 
         Args:
-            username: TicketLeap username
-            password: TicketLeap password
+            username (str): TicketLeap username
+            password (str): TicketLeap password
 
         Returns:
             None
@@ -97,7 +97,7 @@ class TicketLeap:
 
         # Reponse is always 200 even with wrong password
         if login_response.url == "https://ticketleap.com/login/":
-            # obviously we can't log username/password
+            # don't want to log username/password
             logging.fatal("Failed to login")
             raise LoginError("Failed to login")
 
@@ -119,12 +119,13 @@ class TicketLeap:
         Upload an event image to TicketLeap
 
         Args:
-            path_to_file: str Path to image file
+            path_to_file (str): Path to image file
 
         Returns:
-            hero_small_image_url: str URL formatted as
+            Tuple of
+            hero_small_image_url (str): URL formatted as
             https://ticketleap-media-master.s3.amazonaws.com/uuid/full.jpg
-            hero_image_url: str URL formatted as
+            hero_image_url (str): URL formatted as
             https://ticketleap-media-master.s3.amazonaws.com/uuid/hero.jpg
         """
         image_file_types = (
@@ -178,20 +179,15 @@ class TicketLeap:
         Args:
             index (int): Ticket index in list of ticket types
             name (str): Ticket name
-            inventory (int):, None Amount of tickets remaining
+            inventory (int, str): Amount of tickets remaining
             pricing_type (str): Type of pricing ('fixed',)
             price (float): Ticket price
             description (str): Ticket description
-            min_price (int, None): Minimum ticket price
+            min_price (int, str): Minimum ticket price
             visibility (str): Who can see the ticket ('all',)
-            sales_start_days_before: I don't know. Optional
-            sales_start_hours_before: I don't know. Optional
-            sales_end_days_before: I don't know. Optional
-            sales_end_hours_before: I don't know. Optional
-            min_per_order (int, None): Minimum amount of tickets in one purchase
-            max_per_order (int, None): Maximum amount of tickets in one purchase
-            grouping_key
-            delivery_method
+            min_per_order (int, str): Minimum amount of tickets in one purchase
+            max_per_order (int, str): Maximum amount of tickets in one purchase
+            delivery_method (str):
         """
         return {
             f"tickets-{index}-name": (None, name),
@@ -262,12 +258,6 @@ class TicketLeap:
             slug: str = "",
             dates: List[List[datetime.datetime]],
             tickets: List[Dict[str, str]],
-            dates_initial_forms: int = 0,
-            dates_min_num_forms: int = 0,
-            dates_max_num_forms: int = 1000,
-            tickets_initial_forms: int = 0,
-            tickets_min_num_forms: int = 0,
-            tickets_max_num_forms: int = 1000,
             facebook_event_id: str = "",
             facebook_page_id: str = "",
             has_ticketleap_event_page: bool = True,
@@ -291,38 +281,36 @@ class TicketLeap:
             title (str): Event title
             description (str): Event description
             image_path (str): Local path to main event image
-            accent_color (str): 6-length hexadecimal (e.g. #FF00FF)
-            name (str): Location name
+            accent_color (str): 6-length hexadecimal color (e.g. #FF00FF)
+            name (str): Location name (whatever you want it to be)
             street_address (str): Location street address
             city (str): Location city
             region (str): Two character state abbreviation (e.g. CT, PA, GA)
-            postal_code: Union[str, int] 5 digit location postal/zip code
-            slug (str): URL path
+            postal_code (str, int): 5 digit location postal/zip code
+            slug (str): URL slug
             dates: List[List[datetime.datetime]] List of list of start and end
                    dates+times. Must specify year to minutes.
             tickets: List[Dict[str, str]] List of dictionaries specifying tickets
                      properies. Check `generate_ticket_dict()` for parameters
-            dates_initial_forms: int I'm not sure.
-            dates_min_num_forms: int I'm not sure.
-            dates_max_num_forms: int I'm not sure.
-            tickets_initial_forms: int I'm not sure.
-            tickets_min_num_forms: int I'm not sure.
-            tickets_max_num_forms: int I'm not sure.
             facebook_event_id: I'm not sure.
             facebook_page_id: I'm not sure.
-            has_ticketleap_event_page: bool I'm not sure.
-            gallery_type: str I'm not sure.
-            gallery_name: str I'm not sure.
+            has_ticketleap_event_page (bool): I'm not sure.
+            gallery_type (str): I'm not sure.
+            gallery_name (str): I'm not sure.
             gallery_media: dict[str, list[str]] I'm not sure.
-            gallery_media_config: str I'm not sure.
-            hero_image_focal_point: str
-            latitude: Union[float, str] Location latitude
-            longitude: Union[float, str] Location longitude
-            timezone: str Location timezone
-            country_code: str ISO country abbreviation (e.g. 'USA')
-            number_of_tickets: str I'm not sure.
-            draft_setting: int I'm not sure.
-            submit: str I'm not sure.
+            gallery_media_config (str): I'm not sure.
+            hero_image_focal_point (str): Image focal point. Consists of two
+                                          words separated by a space. Words
+                                          include 'center', 'left', 'right',
+                                          'top', 'bottom' and denote position
+                                          on a 3x3 grid.
+            latitude (float, str): Location latitude
+            longitude (float, str): Location longitude
+            timezone (str): Location timezone
+            country_code (str): ISO country abbreviation (e.g. 'USA')
+            number_of_tickets (str): I'm not sure.
+            draft_setting (int): I'm not sure.
+            submit (str): I'm not sure.
         """
         hero_small_image_url, hero_image_url = self.upload_image(image_path)
         logging.debug(f"Uploaded image: Small-{hero_small_image_url} Normal-{hero_image_url}")
@@ -353,13 +341,13 @@ class TicketLeap:
             "region": (None, region),
             "postal_code": (None, str(postal_code)),
             "dates-TOTAL_FORMS": (None, str(len(dates))),
-            "dates-INITIAL_FORMS": (None, str(dates_initial_forms)),
-            "dates-MIN_NUM_FORMS": (None, str(dates_min_num_forms)),
-            "dates-MAX_NUM_FORMS": (None, str(dates_max_num_forms)),
+            "dates-INITIAL_FORMS": (None, "0"),
+            "dates-MIN_NUM_FORMS": (None, "0"),
+            "dates-MAX_NUM_FORMS": (None, "1000"),
             "tickets-TOTAL_FORMS": (None, str(len(tickets))),
-            "tickets-INITIAL_FORMS": (None, str(tickets_initial_forms)),
-            "tickets-MIN_NUM_FORMS": (None, str(tickets_min_num_forms)),
-            "tickets-MAX_NUM_FORMS": (None, str(tickets_max_num_forms)),
+            "tickets-INITIAL_FORMS": (None, "0"),
+            "tickets-MIN_NUM_FORMS": (None, "0"),
+            "tickets-MAX_NUM_FORMS": (None, "1000"),
             "number_of_tickets": (None, str(number_of_tickets)),
             "draft-setting": (None, str(draft_setting)),
             "submit": (None, submit),
@@ -486,7 +474,7 @@ class TicketLeap:
 
         Args:
             event_slug (str): Event slug
-            date (str, datetime.datetime): Date
+            date (str, datetime.datetime): Date or date uuid
         """
         tickets = self.get_tickets(event_slug, date)
         date_uuid = self.get_date_uuid(event_slug, date)
