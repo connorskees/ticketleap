@@ -1,3 +1,4 @@
 *.log
 *.pyc
 .mypy_cache/*
+*.html
