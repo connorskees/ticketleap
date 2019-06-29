@@ -1,7 +1,7 @@
 # ticketleap
 Unofficial Ticketleap API
 
-## Create and modify TicketLeap events at scale
+## Create and Modify TicketLeap Events at Scale
 TicketLeap is unwieldy, and when dealing with large events it can easily become difficult to make changes.
 Adding or updating thousands of tickets by hand just isn't reasonable. TicketLeap exposes an API, but it is readonly and so not very useful. 
 This library attempts to stand in for the missing API.
