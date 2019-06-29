@@ -1,5 +1,5 @@
 # ticketleap
-Unofficial Ticketleap API
+Unofficial TicketLeap API
 
 ## Create and Modify TicketLeap Events at Scale
 TicketLeap is unwieldy, and when dealing with large events it can easily become difficult to make changes.
