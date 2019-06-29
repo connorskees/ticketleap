@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name='ticketleap',
     packages=['ticketleap'],
-    version='1.0.1',
+    version='1.0.2',
     license='MIT',
     description=
     'Unofficial TicketLeap API. Create and modify TicketLeap events at scale',
@@ -10,7 +10,7 @@ setup(
     author_email='connor1skees@gmail.com',
     url='https://github.com/connorskees/ticketleap',
     download_url=
-    'https://github.com/ConnorSkees/ticketleap/archive/v1.0.1.tar.gz',
+    'https://github.com/ConnorSkees/ticketleap/archive/v1.0.2.tar.gz',
     keywords=['ticketleap', 'api'],
     install_requires=[
         'requests',
