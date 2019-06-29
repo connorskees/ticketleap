@@ -1,5 +1,6 @@
 *.log
 *.pyc
-.mypy_cache/*
+.mypy_cache
 *.html
-.vscode/*
+.vscode
+dist
