@@ -700,6 +700,93 @@ class TicketLeap:
                 headers=ticket_headers
             )
             logging.debug(add_response.__dict__)
+    def modify_ticket(
+            self,
+            event_slug: str,
+            date: Union[str, datetime.datetime],
+            ticket_name: str,
+            price: Union[str, float],
+            description: str,
+            inventory: Optional[int] = None,
+            pricing_type: str = "fixed",
+            new_name: Optional[str] = None
+        ) -> None:
+        """
+        Modify ticket values
+
+        Args:
+            event_slug (str): Event URL slug
+            date (str, datetime.datetime): Date as datetime instance or ISO 8601 string datetime
+            ticket_name (str): Current name of ticket
+            price (str, float): New price of ticket
+            description (str): New description of ticket
+            inventory (str, int): Integer max amount of tickets. None means unlimited inventory
+            pricing_type (str):
+            new_name (str): New name of ticket. If `None`, name is unchanged
+        """
+
+        date_uuid = self.get_date_uuid(event_slug, date)
+        ticket_uuid = self.get_ticket_uuid(event_slug, date_uuid, ticket_name)
+
+        edit_data = {
+            "csrfmiddlewaretoken": self.csrf_token,
+            "dates": date_uuid,
+            "name": new_name or ticket_name,
+            "description": description,
+            "pricing_type": pricing_type,
+            "price": str(price),
+            "min_price": "",
+            "sales_start_date": "",
+            "sales_start_time": "",
+            "sales_start_ampm": "pm",
+            "sales_end_date": "",
+            "sales_end_time": "",
+            "sales_end_ampm": "pm",
+            "limit_inventory": "" if inventory is None else "on",
+            "inventory": "" if inventory is None else str(inventory),
+            "min_per_order": "",
+            "max_per_order": "",
+            "grouping_key": "",
+            "delivery_method": "ticket",
+        }
+
+        edit_headers = self.session.headers.copy()
+        edit_headers.update({
+            "Accept": "*/*",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-CSRFToken": self.csrf_token,
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": f"{self.base_sub_url}/admin/events/{event_slug}/details"
+        })
+
+        self.session.get(
+            f"{self.base_sub_url}/admin/events/{event_slug}/performance/{date_uuid}/ticket/{ticket_uuid}/edit/",
+            headers=edit_headers
+        )
+
+        logging.debug(
+            requests.Request(
+                'POST',
+                f"{self.base_sub_url}/admin/events/{event_slug}/performance/{date_uuid}/ticket/{ticket_uuid}/edit/",
+                headers=edit_headers,
+                data=edit_data
+            ).prepare().__dict__
+        )
+
+        res = self.session.post(
+            f"{self.base_sub_url}/admin/events/{event_slug}/performance/{date_uuid}/ticket/{ticket_uuid}/edit/",
+            headers=edit_headers,
+            data=edit_data,
+        )
+
+        if res.ok:
+            logging.info(f"Successfully updated {ticket_name or ticket_uuid} in {event_slug} on {date}")
+            logging.debug(edit_data)
+
+        else:
+            with open("modify_ticket.html", mode="w") as file:
+                file.write(res.text)
+            logging.error(res.__dict__)
 
     def get_dates(self, event_slug: str) -> Dict[str, Dict[str, Union[datetime.datetime, str]]]:
         """
