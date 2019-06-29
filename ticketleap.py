@@ -24,6 +24,10 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%S"
 )
 
+log = logging.getLogger(__name__)
+
+__all__ = ["TicketLeap", "LoginError"]
+
 IS_WINDOWS = os.name == 'nt'
 
 
@@ -70,6 +74,7 @@ class TicketLeap:
         Returns:
             None
         """
+        base_url = "https://ticketleap.com"
         login_headers = self.session.headers.copy()
         login_headers.update({
             "Referer": "https://www.ticketleap.com/login/",
@@ -78,7 +83,7 @@ class TicketLeap:
         })
 
         self.session.get(
-            f"{self.base_url}/login/",
+            f"{base_url}/login/",
         )
 
         self.csrf_token = self.session.cookies["csrftoken"]
@@ -90,7 +95,7 @@ class TicketLeap:
         }
 
         login_response = self.session.post(
-            f"{self.base_url}/login/",
+            f"{base_url}/login/",
             headers=login_headers,
             data=login_data
         )
@@ -98,16 +103,16 @@ class TicketLeap:
         # Reponse is always 200 even with wrong password
         if login_response.url == "https://ticketleap.com/login/":
             # don't want to log username/password
-            logging.fatal("Failed to login")
+            log.fatal("Failed to login")
             raise LoginError("Failed to login")
 
-        logging.info("Successfully logged in")
+        log.info("Successfully logged in")
 
         self.base_sub_url = re.sub(r"/admin/$", "", login_response.url)
         host = re.sub(r"^https?://", "", self.base_sub_url)
 
-        logging.debug(f"base_sub_url: {self.base_sub_url}")
-        logging.debug(f"host: {host}")
+        log.debug(f"base_sub_url: {self.base_sub_url}")
+        log.debug(f"host: {host}")
 
         self.session.headers.update({
             "Host": host,
@@ -139,7 +144,7 @@ class TicketLeap:
         })
 
         if not path_to_image.lower().endswith(image_file_types):
-            logging.fatal(f"Invalid file type:{path_to_image}")
+            log.fatal(f"Invalid file type:{path_to_image}")
             raise ValueError(f"{path_to_image} is not a valid image file type")
 
         base_name = os.path.basename(path_to_image)
@@ -313,7 +318,7 @@ class TicketLeap:
             submit (str): I'm not sure.
         """
         hero_small_image_url, hero_image_url = self.upload_image(image_path)
-        logging.debug(f"Uploaded image: Small-{hero_small_image_url} Normal-{hero_image_url}")
+        log.debug(f"Uploaded image: Small-{hero_small_image_url} Normal-{hero_image_url}")
         event_data = {
             "csrfmiddlewaretoken": (None, self.csrf_token),
             "facebook_event_id": (None, facebook_event_id),
@@ -368,7 +373,7 @@ class TicketLeap:
             "Referer": f"{self.base_sub_url}/admin/events/create",
         })
 
-        logging.debug(
+        log.debug(
             requests.Request(
                 'POST',
                 f"{self.base_sub_url}/admin/events/create",
@@ -384,7 +389,7 @@ class TicketLeap:
         )
 
         if not create_response.ok:
-            logging.fatal(f"Failed to create event:{create_response.__dict__}")
+            log.fatal(f"Failed to create event:{create_response.__dict__}")
 
             with open("create_response.html", mode="w") as file:
                 file.write(create_response.text)
@@ -434,7 +439,7 @@ class TicketLeap:
 
         clone_uuid = self.get_event_uuid(clone_slug)
 
-        logging.debug(
+        log.debug(
             requests.Request(
                 'POST',
                 f"{self.base_sub_url}/admin/events/clone/{clone_uuid}",
@@ -450,7 +455,7 @@ class TicketLeap:
         )
 
         if not clone_response.ok:
-            logging.error(f"Failed to clone:{clone_response.__dict__}")
+            log.error(f"Failed to clone:{clone_response.__dict__}")
 
             with open("clone_response.html", mode="w") as file:
                 file.write(clone_response.text)
@@ -520,7 +525,7 @@ class TicketLeap:
             headers=delete_headers
         )
 
-        logging.info(f"Successfully deleted {ticket_name or ticket_uuid} in {event_slug} on {date}")
+        log.info(f"Successfully deleted {ticket_name or ticket_uuid} in {event_slug} on {date}")
 
     def get_tickets(
             self,
@@ -572,8 +577,8 @@ class TicketLeap:
         ticket_uuid = events_dict.get(ticket_name)
 
         if ticket_uuid is None:
-            error_message = f"Invalid ticket name for {event_slug} on {date}: `{ticket_name}``"
-            logging.fatal(error_message)
+            error_message = f"Invalid ticket name for {event_slug} on {date}: `{ticket_name}`"
+            log.fatal(error_message)
             raise ValueError(error_message)
 
         return ticket_uuid
@@ -602,7 +607,7 @@ class TicketLeap:
         event_titles = (title(t["href"]).group(1) for t in event_titles if title(t["href"]))
         event_uuids = (uuid_regex.match(t["href"]).group(1) for t in event_uuids)
         event_dict = dict(zip(event_titles, event_uuids))
-        logging.info(f"Event UUIDS:{event_dict}")
+        log.info(f"Event UUIDS:{event_dict}")
         return event_dict
 
     def get_event_uuid(self, event_slug: str) -> str:
@@ -617,7 +622,7 @@ class TicketLeap:
         """
         event_uuid = self.get_events().get(event_slug)
         if event_uuid is None:
-            logging.fatal(f"Invalid event slug: {event_slug}")
+            log.fatal(f"Invalid event slug: {event_slug}")
             raise ValueError(f"Invalid event slug: {event_slug}")
         return event_uuid
 
@@ -682,7 +687,7 @@ class TicketLeap:
                 "delivery_method": ticket["tickets-0-delivery_method"],
             }
 
-            logging.debug(
+            log.debug(
                 requests.Request(
                     'POST',
                     f"{self.base_sub_url}/admin/events/{event_slug}/performance/{date_uuid_list[0]}/ticket/add/",
@@ -699,7 +704,10 @@ class TicketLeap:
                 data=ticket_params,
                 headers=ticket_headers
             )
-            logging.debug(add_response.__dict__)
+            res_dict = add_response.__dict__
+            res_dict.pop("_content")
+            log.debug(res_dict)
+
     def modify_ticket(
             self,
             event_slug: str,
@@ -764,7 +772,7 @@ class TicketLeap:
             headers=edit_headers
         )
 
-        logging.debug(
+        log.debug(
             requests.Request(
                 'POST',
                 f"{self.base_sub_url}/admin/events/{event_slug}/performance/{date_uuid}/ticket/{ticket_uuid}/edit/",
@@ -780,13 +788,13 @@ class TicketLeap:
         )
 
         if res.ok:
-            logging.info(f"Successfully updated {ticket_name or ticket_uuid} in {event_slug} on {date}")
-            logging.debug(edit_data)
+            log.info(f"Successfully updated {ticket_name or ticket_uuid} in {event_slug} on {date}")
+            log.debug(edit_data)
 
         else:
             with open("modify_ticket.html", mode="w") as file:
                 file.write(res.text)
-            logging.error(res.__dict__)
+            log.error(res.__dict__)
 
     def get_dates(self, event_slug: str) -> Dict[str, Dict[str, Union[datetime.datetime, str]]]:
         """
@@ -813,7 +821,7 @@ class TicketLeap:
         soup = BeautifulSoup(html, "html.parser")
         dropdown = soup.find("div", class_="dropdown hide")
         if dropdown is None:
-            logging.fatal(f"Invalid event slug: `{event_slug}`")
+            log.fatal(f"Invalid event slug: `{event_slug}`")
             raise ValueError(f"Invalid event slug: `{event_slug}`")
         dates = {}
         for li in dropdown.ul.find_all("li"):
@@ -856,7 +864,7 @@ class TicketLeap:
         date_dict = self.get_dates(event_slug=event_slug).get(date)
 
         if date_dict is None:
-            logging.fatal(f"Invalid date for {event_slug}: `{date}`")
+            log.fatal(f"Invalid date for {event_slug}: `{date}`")
             raise ValueError(f"Invalid date for {event_slug}: `{date}`")
 
         return date_dict["uuid"]
