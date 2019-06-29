@@ -17,13 +17,6 @@ from bs4 import BeautifulSoup
 import requests
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename="ticketleap.log",
-    format="%(name)s:%(asctime)s:%(levelname)s:%(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S"
-)
-
 log = logging.getLogger(__name__)
 
 __all__ = ["TicketLeap", "LoginError"]
