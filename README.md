@@ -7,7 +7,7 @@ Adding or updating thousands of tickets by hand just isn't reasonable. TicketLea
 This library attempts to stand in for the missing API.
 
 One can very quickly and easily create large numbers of tickets and events. For example,
-if one wanted to add a new type of ticket to every date:
+if one wanted to add a new type of ticket to every date (keeping sensitive details hidden in environment variables or otherwise is left up to the user):
 ```python
 from ticketleap import TicketLeap
 t = TicketLeap(username="foo", password="bar")
