@@ -42,7 +42,7 @@ class LoginError(Exception):
 class TicketLeap:
     """Base TicketLeap request-making class"""
     def __init__(self) -> None:
-        self.base_url = "https://ticketleap.com"
+        __slots__ = ("base_sub_url", "csrf_token", "session")
         self.base_sub_url: str  # base subdomain request url (https://xxx.ticketleap.com)
         self.csrf_token: str
         self.session = requests.Session()
@@ -805,12 +805,11 @@ class TicketLeap:
 
         Returns:
             dict where
-                - keys are iso 8601 format date and time (e.g. 2019-06-20T14:00:00)
+                - key is (str) iso 8601 format datetime (e.g. 2019-06-20T14:00:00)
                 - value is another dict where
                     - keys are 'start', 'end', and 'uuid'
                     - values of 'start' and 'end' are (datetime.datetime)
                     - value of 'uuid' is (str) uuid
-
         """
         html = self.session.get(
             f"{self.base_sub_url}/admin/events/{event_slug}/details",
