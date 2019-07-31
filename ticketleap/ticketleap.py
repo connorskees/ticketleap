@@ -591,13 +591,13 @@ class TicketLeap:
             headers={"Referer": f"{self.base_sub_url}/admin/"}
         ).text
         soup = BeautifulSoup(html, "html.parser")
-        title_regex = re.compile(r"^/admin/events/([^/]+)(?:/details\?d=\w{3}-\d{1,2}-\d{4}_at_\d{4}[AP]M)?")
+        title_regex = re.compile(r"^/admin/events/([^/]+)/details\?d=\w{3}-\d{1,2}-\d{4}_at_\d{4}[AP]M")
         uuid_regex = re.compile(r"^#dialog=/admin/events/clone/([a-z0-9-]{36})$")
         # aliasing `title_regex.match()` as `title()` for line length and clarity
         title = title_regex.match
         event_titles = soup.find_all("a", attrs={"title": "Manage"})
         event_uuids = soup.find_all("a", attrs={"title": "Clone"})
-        event_titles = (title(t["href"]).group(1) for t in event_titles if title(t["href"]))
+        event_titles = (title(t["href"]).group(1) for t in event_titles if t.get("href") and title(t["href"]))
         event_uuids = (uuid_regex.match(t["href"]).group(1) for t in event_uuids)
         event_dict = dict(zip(event_titles, event_uuids))
         log.info(f"Event UUIDS:{event_dict}")
