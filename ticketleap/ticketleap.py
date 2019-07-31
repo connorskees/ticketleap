@@ -190,6 +190,7 @@ class TicketLeap:
         return {
             f"tickets-{index}-name": (None, name),
             f"tickets-{index}-inventory": (None, str(inventory)),
+            f"tickets-{index}-limit_inventory": (None, "on" if inventory else ""),
             f"tickets-{index}-pricing_type": (None, pricing_type),
             f"tickets-{index}-price": (None, str(price)),
             f"tickets-{index}-min_price": (None, str(min_price)),
@@ -674,6 +675,7 @@ class TicketLeap:
                 "sales_end_time": "",
                 "sales_end_ampm": "pm",
                 "inventory": ticket["tickets-0-inventory"],
+                "limit_inventory": ticket["tickets-0-limit_inventory"],
                 "min_per_order": ticket["tickets-0-min_per_order"],
                 "max_per_order": ticket["tickets-0-max_per_order"],
                 "grouping_key": ticket["tickets-0-grouping_key"],
