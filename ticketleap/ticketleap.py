@@ -521,6 +521,31 @@ class TicketLeap:
 
         log.info(f"Successfully deleted {ticket_name or ticket_uuid} in {event_slug} on {date}")
 
+    def modify_post_purchase_message(self, event_slug: str, post_purchase_message: s) -> None:
+        """
+        Modify the post purchase message (the email sent to users after purchase)
+
+        Args:
+            event_slug (str): Event URL slug
+            post_purchase_message (str): Post purchase message
+
+        Returns:
+            None
+        """
+        self.session.post(
+            f"{self.base_sub_url}/admin/events/{event_slug}/details/modify-post-purchase-message",
+            headers={
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Referer": f"{self.base_sub_url}/admin/events/{event_slug}/details",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            data={
+                "csrfmiddlewaretoken": self.csrf_token,
+                "post_purchase_message": post_purchase_message,
+            }
+        )
+
     def get_tickets(
             self,
             event_slug: str,
