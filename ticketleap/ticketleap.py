@@ -169,6 +169,7 @@ class TicketLeap:
             description: str = "",
             min_per_order: Union[int, str] = "",
             max_per_order: Union[int, str] = "",
+            # "ticket" = ticketed; "no_e_ticket" = reservation only
             delivery_method: str = "ticket"
         ) -> Dict[str, Tuple[None, str]]:
         """
@@ -185,7 +186,7 @@ class TicketLeap:
             visibility (str): Who can see the ticket ('all',)
             min_per_order (int, str): Minimum amount of tickets in one purchase
             max_per_order (int, str): Maximum amount of tickets in one purchase
-            delivery_method (str):
+            delivery_method ("ticket", "no_e_ticket"): "ticket" = ticketed; "no_e_ticket" = reservation only
         """
         return {
             f"tickets-{index}-name": (None, name),
